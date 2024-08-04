@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basit Web Oyunu</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: black;
+        }
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: black;
+        }
+        #play-button, #retry-button {
+            position: absolute;
+            width: 200px;
+            height: 60px;
+            background-color: red;
+            color: white;
+            font-size: 24px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease, transform 0.3s ease;
+        }
+        #play-button:hover, #retry-button:hover {
+            transform: scale(1.1);
+        }
+        #play-button {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #retry-button {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            display: none;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .ball {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+        }
+        .white-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://example.com/8bit-forest.png');
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="play-button">Play</div>
+        <div id="retry-button">Try Again</div>
+        <div id="score">Score: 0</div>
+        <div class="white-background"></div>
+    </div>
+    <script>
+        const playButton = document.getElementById('play-button');
+        const retryButton = document.getElementById('retry-button');
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score');
+        const whiteBackground = document.querySelector('.white-background');
+        let score = 0;
+        let ball;
+        let speed = 3000; // initial speed
+
+        function startGame() {
+            playButton.style.display = 'none';
+            retryButton.style.display = 'none';
+            whiteBackground.style.opacity = '1';
+            scoreDisplay.style.opacity = '1';
+            scoreDisplay.innerText = 'Score: 0';
+            score = 0;
+            speed = 3000; // reset speed
+            spawnBall();
+        }
+
+        function endGame() {
+            clearInterval(ball.moveInterval);
+            gameContainer.removeChild(ball);
+            retryButton.style.display = 'flex';
+            retryButton.style.opacity = '1';
+        }
+
+        function spawnBall() {
+            ball = createBall();
+            gameContainer.appendChild(ball);
+            moveBall(ball);
+        }
+
+        function createBall() {
+            const ball = document.createElement('div');
+            ball.classList.add('ball');
+            ball.style.top = '50%';
+            ball.style.left = '50%';
+            ball.addEventListener('click', () => {
+                score++;
+                scoreDisplay.innerText = 'Score: ' + score;
+                clearInterval(ball.moveInterval);
+                gameContainer.removeChild(ball);
+                if (score % 10 === 0) {
+                    speed = Math.max(500, speed - 500); // increase speed every 10 points, minimum speed 500ms
+                }
+                spawnBall();
+            });
+            return ball;
+        }
+
+        function moveBall(ball) {
+            const maxX = gameContainer.clientWidth - ball.clientWidth;
+            const maxY = gameContainer.clientHeight - ball.clientHeight;
+            const targetX = Math.random() < 0.5 ? 0 : maxX;
+            const targetY = Math.random() < 0.5 ? 0 : maxY;
+            const duration = speed;
+
+            const startX = ball.offsetLeft;
+            const startY = ball.offsetTop;
+            const deltaX = targetX - startX;
+            const deltaY = targetY - startY;
+            const startTime = Date.now();
+
+            ball.moveInterval = setInterval(() => {
+                const currentTime = Date.now();
+                const progress = (currentTime - startTime) / duration;
+                if (progress >= 1) {
+                    endGame();
+                    return;
+                }
+                ball.style.left = startX + deltaX * progress + 'px';
+                ball.style.top = startY + deltaY * progress + 'px';
+            }, 16);
+        }
+
+        playButton.addEventListener('click', startGame);
+        retryButton.addEventListener('click', () => {
+            retryButton.style.opacity = '0';
+            startGame();
+        });
+    </script>
+</body>
+</html>
